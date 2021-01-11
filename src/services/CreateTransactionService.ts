@@ -1,12 +1,13 @@
-// import AppError from '../errors/AppError';
-import { getRepository } from 'typeorm';
+import { getRepository, getCustomRepository } from 'typeorm';
+import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
 import TransactionsRepository from '../repositories/TransactionsRepository';
+import Category from '../models/Category';
 
 interface TransactionType {
   title: string;
   value: number;
-  type: string;
+  type: 'income' | 'outcome';
   category: string;
 }
 
@@ -18,16 +19,41 @@ class CreateTransactionService {
     category,
   }: TransactionType): Promise<Transaction> {
     // TODO
-    const transactionsRepository = await getRepository(TransactionsRepository);
-    const transaction = transactionsRepository.create({
-      //transaction_id,
+    const transactionsRepository = await getCustomRepository(
+      TransactionsRepository,
+    );
+    const categoryRepository = getRepository(Category);
+
+    const { total: totalBalance } = await transactionsRepository.getBalance();
+    if (type === 'outcome' && value >= totalBalance) {
+      throw new AppError('O valor de retirada está acima do saldo total!', 400);
+    }
+
+    // get category
+    const categoryExists = await categoryRepository.findOne({
+      where: { title: category },
+    });
+    let category_id;
+    if (!categoryExists) {
+      // salva categoria
+      const categoryObj = categoryRepository.create({
+        title: category,
+      });
+      const categoryRef = await categoryRepository.save(categoryObj);
+      category_id = categoryRef.id;
+    } else {
+      // pega id da categoria
+      category_id = categoryExists.id;
+    }
+
+    const transactionObj = transactionsRepository.create({
       title,
       value,
       type,
-      category,
+      category_id,
     });
-    await TransactionsRepository.save(transaction);
-    return transaction;
+    await transactionsRepository.save(transactionObj);
+    return transactionObj;
   }
 }
 
