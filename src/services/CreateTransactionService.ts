@@ -1,7 +1,8 @@
 import { getRepository, getCustomRepository } from 'typeorm';
 import AppError from '../errors/AppError';
-import Transaction from '../models/Transaction';
+
 import TransactionsRepository from '../repositories/TransactionsRepository';
+import Transaction from '../models/Transaction';
 import Category from '../models/Category';
 
 interface TransactionType {
@@ -18,7 +19,7 @@ class CreateTransactionService {
     type,
     category,
   }: TransactionType): Promise<Transaction> {
-    // TODO
+    console.log('-------------- CreateTransactionService --------------');
     const transactionsRepository = await getCustomRepository(
       TransactionsRepository,
     );

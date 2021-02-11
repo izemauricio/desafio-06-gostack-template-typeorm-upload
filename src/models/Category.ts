@@ -4,10 +4,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   PrimaryGeneratedColumn,
-  OneToMany,
 } from 'typeorm';
-
-import Transaction from './Transaction';
 
 @Entity('categories')
 class Category {
